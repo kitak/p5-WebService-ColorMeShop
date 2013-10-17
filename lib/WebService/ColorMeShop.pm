@@ -27,19 +27,66 @@ sub new {
 sub shop {
   my $self = shift;
   my $res = $self->{_agent}->get('/v1/shop.json', {});
-  return $res->parse_response->{shop};
+  return %{ $res->parse_response->{shop} };
 }
 
 sub sales_stat {
   my $self = shift;
   my $res = $self->{_agent}->get('/v1/sales/stat.json', {});
-  return $res->parse_response->{sales_stat};
+  return %{ $res->parse_response->{sales_stat} };
 }
 
 sub sales {
   my $self = shift;
   my $res = $self->{_agent}->get('/v1/sales.json', {});
-  return $res->parse_response->{sales};
+  return @{ $res->parse_response->{sales} };
+}
+
+sub sale {
+  my $self = shift;
+  my $id = shift;
+  my $res = $self->{_agent}->get("/v1/sales/${id}.json", {});
+  return %{ $res->parse_response->{sale} };
+}
+
+sub update_safe {
+}
+
+sub customers {
+  my $self = shift;
+  my $res = $self->{_agent}->get('/v1/customers.json', {});
+  return @{ $res->parse_response->{customers} };
+}
+
+sub customer {
+  my $self = shift;
+  my $id = shift;
+  my $res = $self->{_agent}->get("/v1/customers/${id}.json", {});
+  return %{ $res->parse_response->{customer} };
+}
+
+sub products {
+  my $self = shift;
+  my %params = @_;
+  my $res = $self->{_agent}->get('/v1/products.json', %params);
+  return @{ $res->parse_response->{products} };
+}
+
+sub update_product {
+}
+
+sub product {
+  my $self = shift;
+  my $id = shift;
+  my $res = $self->{_agent}->get("/v1/products/${id}.json", {});
+  return %{ $res->parse_response->{product} };
+}
+
+sub stocks {
+  my $self = shift;
+  my %params = @_;
+  my $res = $self->{_agent}->get('/v1/stocks.json', %params);
+  return @{ $res->parse_response->{stocks} };
 }
 
 sub categories {
@@ -48,10 +95,28 @@ sub categories {
   return @{ $res->parse_response->{categories} };
 }
 
+sub payments {
+  my $self = shift;
+  my $res = $self->{_agent}->get('/v1/payments.json', {});
+  return @{ $res->parse_response->{payments} };
+}
+
 sub deliveries {
   my $self = shift;
   my $res = $self->{_agent}->get('/v1/deliveries.json', {});
-  return $res->parse_response->{deliveries};
+  return @{ $res->parse_response->{deliveries} };
+}
+
+sub deliveries_date {
+  my $self = shift;
+  my $res = $self->{_agent}->get('/v1/deliveries/date.json', {});
+  return %{ $res->parse_response->{delivery_date} };
+}
+
+sub gifts {
+  my $self = shift;
+  my $res = $self->{_agent}->get('/v1/gifts.json', {});
+  return @{ $res->parse_response->{gifts} };
 }
 
 1;
