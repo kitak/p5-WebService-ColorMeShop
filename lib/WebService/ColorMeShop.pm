@@ -26,12 +26,13 @@ sub new {
 sub _get {
     my $self = shift;
     my $path = shift;
-    my %param = @_;
+    my $params = shift;
 
     my $uri = URI->new("${BASE_URL}${path}");
-    $uri->query_form(%param);
+    my $access_token = $self->access_token;
+    $uri->query_form(%$params);
     my $req = HTTP::Request->new('GET', $uri->as_string,
-        [Authorization => "Bearer $self->access_token"],
+        [Authorization => "Bearer ${access_token}"],
     );
 
     my $res = $self->{agent}->request($req);
@@ -42,14 +43,15 @@ sub _get {
 sub _put {
     my $self = shift;
     my $path = shift;
-    my $param = shift;
+    my $params = shift;
 
     my $uri = URI->new("${BASE_URL}${path}");
+    my $access_token = $self->access_token;
     my $req = HTTP::Request->new('POST', $uri->as_string,
-        [Authorization => "Bearer $self->access_token",
+        [Authorization            => "Bearer ${access_token}",
          "X-Http-Method-Override" => "put",
          "Content-Type"           => "application/json"],
-        encode_json($param)
+        encode_json($params)
     );
 
     my $res = $self->{agent}->request($req);
@@ -62,13 +64,15 @@ sub _error_hundler {
     my $res  = shift;
 
     if (int($res->code / 100) == 4) {
-        croak("API error\n${res->content}")
+        my $content = $res->content;
+        croak("API error\n${content}");
     }
 }
 
 sub shop {
     my $self = shift;
-    my $res = $self->_get('shop.json');
+    my $params = shift;
+    my $res = $self->_get('shop.json', $params);
     return $res->{shop};
 }
 
@@ -80,8 +84,8 @@ sub sales_stat {
 
 sub sales {
     my $self = shift;
-    my %param = @_;
-    my $res = $self->_get('sales.json', %param);
+    my $params = shift;
+    my $res = $self->_get('sales.json', $params);
     return $res->{sales};
 }
 
@@ -95,15 +99,15 @@ sub sale {
 sub update_sale {
     my $self = shift;
     my $id = shift;
-    my %param = @_;
+    my $params = shift;
 
-    if (exists $param{paid} && $param{paid}) {
-        $param{paid} = JSON::true;
-    } elsif (exists $param{paid} && !$param{paid}) {
-        $param{paid} = JSON::false;
+    if (exists $params->{paid} && $params->{paid}) {
+        $params->{paid} = JSON::true;
+    } elsif (exists $params->{paid} && !$params->{paid}) {
+        $params->{paid} = JSON::false;
     }
-    if (exists $param{"sale_deliveries"}) {
-        for my $sale_delivery (@{ $param{"sale_deliveries"} }){
+    if (exists $params->{"sale_deliveries"}) {
+        for my $sale_delivery (@{ $params->{"sale_deliveries"} }){
             if (exists $sale_delivery->{delivered} && $sale_delivery->{delivered}) {
                 $sale_delivery->{delivered} = JSON::true;
             } else {
@@ -112,14 +116,15 @@ sub update_sale {
         }
     }
     my $res = $self->_put("sales/${id}.json", {
-            sale => \%param
+            sale => $params
     });
     return $res->{sale};
 }
 
 sub customers {
     my $self = shift;
-    my $res = $self->_get('customers.json');
+    my $params = shift;
+    my $res = $self->_get('customers.json', $params);
     return $res->{customers};
 }
 
@@ -132,8 +137,8 @@ sub customer {
 
 sub products {
     my $self = shift;
-    my %params = @_;
-    my $res = $self->_get('products.json', %params);
+    my $params = shift;
+    my $res = $self->_get('products.json', $params);
     return $res->{products};
 }
 
@@ -147,23 +152,23 @@ sub product {
 sub update_product {
     my $self = shift;
     my $id = shift;
-    my %param = @_;
+    my $params = shift;
 
-    if (exists $param{stock_managed} && $param{stock_manages}) {
-        $param{paid} = JSON::true;
+    if (exists $params->{stock_managed} && $params->{stock_manages}) {
+        $params->{paid} = JSON::true;
     } else {
-        $param{paid} = JSON::false;
+        $params->{paid} = JSON::false;
     }
     my $res = $self->_put("sales/${id}.json", {
-            product => \%param
+            product => $params
     });
     return $res->{sale};
 }
 
 sub stocks {
     my $self = shift;
-    my %params = @_;
-    my $res = $self->_get('stocks.json', %params);
+    my $params = shift;
+    my $res = $self->_get('stocks.json', $params);
     return $res->{stocks};
 }
 
@@ -196,6 +201,7 @@ sub gifts {
     my $res = $self->_get('gifts.json');
     return $res->{gifts};
 }
+
 1;
 __END__
 
